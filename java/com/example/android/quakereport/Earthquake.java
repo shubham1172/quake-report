@@ -15,8 +15,8 @@ public class Earthquake {
         this.timeInMilliSeconds = timeInMilliSeconds;
     }
 
-    public String getMagnitude(){
-        return Double.toString(magnitude);
+    public double getMagnitude(){
+        return magnitude;
     }
     public String getPlace(){
         return place;
