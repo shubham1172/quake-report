@@ -17,26 +17,35 @@ package com.example.android.quakereport;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class EarthquakeActivity extends AppCompatActivity {
 
-   // public static final String LOG_TAG = EarthquakeActivity.class.getName();
+    /** USGC URL for making request */
+    private static final String USGC_URL = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=5&limit=20";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.earthquake_activity);
+        new EarthquakeAsyncClass().execute(USGC_URL);
+    }
 
+    private void notifyLoad(){
+        Toast notify = Toast.makeText(this, "Fetching from USGC...", Toast.LENGTH_SHORT);
+        notify.show();
+    }
 
-        //Create a fake list of earthquake data.
-        ArrayList<Earthquake> earthquakes = QueryUtils.extractEarthquakes();
+    private void updateUI(ArrayList<Earthquake> earthquakes){
 
         // Find a reference to the {@link ListView} in the layout
         ListView earthquakeListView = (ListView) findViewById(R.id.list);
@@ -46,6 +55,7 @@ public class EarthquakeActivity extends AppCompatActivity {
 
         // Set the adapter on the {@link ListView}
         // so the list can be populated in the user interface
+
         if(earthquakeListView!=null) {
             earthquakeListView.setAdapter(adapter);
             earthquakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -57,6 +67,25 @@ public class EarthquakeActivity extends AppCompatActivity {
                     startActivity(urlOpener);
                 }
             });
+        }
+    }
+
+    private class EarthquakeAsyncClass extends AsyncTask<String, Void, ArrayList<Earthquake>>{
+
+        @Override
+        protected void onPreExecute() {
+            notifyLoad();
+        }
+
+        @Override
+        protected ArrayList<Earthquake> doInBackground(String... urls) {
+            //Create a list of earthquake data.
+            return  QueryUtils.extractEarthquakes(urls[0]);
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Earthquake> list) {
+            updateUI(list);
         }
     }
 }
